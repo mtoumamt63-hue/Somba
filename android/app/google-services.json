@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "455331920012",
+    "project_id": "somba-app-2026",
+    "storage_bucket": "somba-app-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:455331920012:android:4112a05b01f0f12b1123a9",
+        "android_client_info": {
+          "package_name": "com.example.somba"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvTDpcuyB3rXpmeVRrwh_OPrYGQQFJUyk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
