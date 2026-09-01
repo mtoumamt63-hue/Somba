@@ -1,45 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
   <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
+    Flutter Web — Somba E-Commerce App
+    Base href is replaced by flutter build --base-href
   -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Somba — Votre application e-commerce moderne. Découvrez, achetez et gérez vos commandes facilement.">
+  <meta name="theme-color" content="#6C63FF">
+
+  <!-- Open Graph / Social sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Somba — E-Commerce Moderne">
+  <meta property="og:description" content="Découvrez, achetez et gérez vos commandes facilement avec Somba.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="somba">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Somba">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>somba</title>
+  <title>Somba — E-Commerce</title>
   <link rel="manifest" href="manifest.json">
+
+  <!--
+    Google Identity Services (GIS) — requis pour Google Sign-In sur Flutter Web
+    avec le package google_sign_in ^7.x.
+    Le client-id doit correspondre à celui configuré dans la Firebase Console
+    (OAuth 2.0 → Applications Web autorisées).
+  -->
+  <meta name="google-signin-client_id" content="455331920012-web.apps.googleusercontent.com">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
+    Flutter bootstrap — initialise le moteur Flutter pour le web.
+    Personnalisable : https://docs.flutter.dev/platform-integration/web/initialization
   -->
   <script src="flutter_bootstrap.js" async></script>
 </body>

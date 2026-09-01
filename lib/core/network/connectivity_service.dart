@@ -31,7 +31,10 @@ class ConnectivityService {
         r == ConnectivityResult.wifi ||
         r == ConnectivityResult.mobile ||
         r == ConnectivityResult.ethernet ||
-        r == ConnectivityResult.vpn);
+        r == ConnectivityResult.vpn ||
+        // Sur Flutter Web, connectivity_plus retourne souvent `other`
+        // (le navigateur ne distingue pas le type de connexion exactement).
+        r == ConnectivityResult.other);
   }
 }
 

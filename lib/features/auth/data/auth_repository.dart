@@ -5,13 +5,15 @@ import 'package:google_sign_in/google_sign_in.dart';
 /// Repository centralisant toutes les opérations d'authentification Firebase.
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
-  final GoogleSignIn _googleSignIn;
+  // Sur Web, Google Sign-In passe par signInWithPopup (Firebase) — pas besoin de l'instance GoogleSignIn.
+  // Sur mobile, on utilise le flux natif GoogleSignIn.
+  final GoogleSignIn? _googleSignIn;
 
   AuthRepository({
     FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
+        _googleSignIn = kIsWeb ? null : (googleSignIn ?? GoogleSignIn.instance);
 
   /// Flux réactif des changements d'état d'authentification.
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
@@ -68,23 +70,39 @@ class AuthRepository {
   }
 
   // ---------------------------------------------------------------------------
-  // Connexion Google Sign-In (v7.x authenticate)
+  // Connexion Google Sign-In
   // ---------------------------------------------------------------------------
 
   /// Connecte un utilisateur via Google Sign-In.
+  /// Sur Flutter Web  → utilise FirebaseAuth.signInWithPopup (popup navigateur).
+  /// Sur Mobile/Desktop → utilise le flux natif GoogleSignIn.authenticate().
   Future<UserCredential> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount googleUser =
-          await _googleSignIn.authenticate();
+      if (kIsWeb) {
+        // ── Chemin Web ──────────────────────────────────────────────────────
+        // Le popup Google est géré nativement par Firebase Auth pour le Web.
+        // Nécessite le script GIS dans web/index.html et l'origine autorisée
+        // dans la Firebase Console → Authentication → Domaines autorisés.
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider()
+          ..addScope('email')
+          ..addScope('profile')
+          ..setCustomParameters({'prompt': 'select_account'});
 
-      final GoogleSignInAuthentication googleAuth =
-          googleUser.authentication;
+        return await _firebaseAuth.signInWithPopup(googleProvider);
+      } else {
+        // ── Chemin Mobile / Desktop ─────────────────────────────────────────
+        final GoogleSignInAccount googleUser =
+            await _googleSignIn!.authenticate();
 
-      final credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
-      );
+        final GoogleSignInAuthentication googleAuth =
+            googleUser.authentication;
 
-      return await _firebaseAuth.signInWithCredential(credential);
+        final credential = GoogleAuthProvider.credential(
+          idToken: googleAuth.idToken,
+        );
+
+        return await _firebaseAuth.signInWithCredential(credential);
+      }
     } on FirebaseAuthException catch (e) {
       throw _mapFirebaseAuthError(e);
     } on AuthException {
@@ -101,10 +119,16 @@ class AuthRepository {
   /// Déconnecte l'utilisateur de Firebase et de Google.
   Future<void> signOut() async {
     try {
-      await Future.wait([
-        _firebaseAuth.signOut(),
-        _googleSignIn.signOut(),
-      ]);
+      if (kIsWeb) {
+        // Sur Web, il n'y a pas d'instance GoogleSignIn — Firebase gère la session.
+        await _firebaseAuth.signOut();
+      } else {
+        // Sur mobile, déconnexion simultanée de Firebase et de Google.
+        await Future.wait([
+          _firebaseAuth.signOut(),
+          _googleSignIn!.signOut(),
+        ]);
+      }
     } catch (e) {
       debugPrint('Erreur lors de la déconnexion : $e');
     }
