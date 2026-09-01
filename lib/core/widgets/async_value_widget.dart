@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../errors/app_error_handler.dart';
 import 'error_view.dart';
 
 /// Widget générique réutilisable pour gérer harmonieusement les états `AsyncValue<T>`
@@ -86,7 +87,8 @@ class AsyncValueWidget<T> extends StatelessWidget {
           return error!(err, stack);
         }
         final errorWidget = ErrorView(
-          message: _formatErrorMessage(err),
+          message: AppErrorHandler.format(err),
+          icon: AppErrorHandler.getIcon(err),
           onRetry: onRetry,
         );
 
@@ -100,13 +102,5 @@ class AsyncValueWidget<T> extends StatelessWidget {
       },
     );
   }
-
-  /// Nettoie les messages d'erreur techniques pour l'affichage utilisateur.
-  String _formatErrorMessage(Object error) {
-    final raw = error.toString();
-    if (raw.startsWith('Exception: ')) {
-      return raw.replaceFirst('Exception: ', '');
-    }
-    return raw;
-  }
 }
+

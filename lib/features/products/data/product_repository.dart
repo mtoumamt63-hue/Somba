@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/product.dart';
 import 'mock_products_data.dart';
+import 'offline_first_product_repository.dart';
 
 /// Interface du Repository des Produits.
 abstract class ProductRepository {
@@ -87,7 +88,7 @@ class MockProductRepository implements ProductRepository {
   }
 }
 
-/// Provider Riverpod exposant l'instance du repository des produits.
+/// Provider Riverpod exposant l'instance Offline-First du repository des produits.
 final productRepositoryProvider = Provider<ProductRepository>((ref) {
-  return MockProductRepository();
+  return OfflineFirstProductRepository();
 });

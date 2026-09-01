@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/local_cart_repository.dart';
 import '../../domain/cart_item.dart';
 import '../../../products/domain/product.dart';
 
@@ -56,12 +57,29 @@ class CartState {
 }
 
 // =============================================================================
-// NOTIFIER : GESTION DU PANIER
+// NOTIFIER : GESTION DU PANIER AVEC PERSISTANCE HIVE
 // =============================================================================
 
-/// Gestionnaire d'état du panier d'achat (Ajout, Suppression, Quantités, Total).
+/// Gestionnaire d'état du panier d'achat avec persistance Hive automatique.
 class CartNotifier extends StateNotifier<CartState> {
-  CartNotifier() : super(const CartState());
+  final LocalCartRepository _localCartRepo;
+
+  CartNotifier([LocalCartRepository? localCartRepo])
+      : _localCartRepo = localCartRepo ?? LocalCartRepository(),
+        super(const CartState()) {
+    _loadPersistedCart();
+  }
+
+  void _loadPersistedCart() {
+    final savedItems = _localCartRepo.loadCart();
+    if (savedItems.isNotEmpty) {
+      state = CartState(items: List.unmodifiable(savedItems));
+    }
+  }
+
+  void _persistState() {
+    _localCartRepo.saveCart(state.items);
+  }
 
   /// Ajoute un produit au panier ou augmente sa quantité s'il y est déjà.
   void addToCart(Product product, [int quantity = 1]) {
@@ -85,6 +103,7 @@ class CartNotifier extends StateNotifier<CartState> {
         items: List.unmodifiable([...state.items, newItem]),
       );
     }
+    _persistState();
   }
 
   /// Modifie directement la quantité d'un article (le retire si quantité <= 0).
@@ -102,6 +121,7 @@ class CartNotifier extends StateNotifier<CartState> {
     }).toList();
 
     state = state.copyWith(items: List.unmodifiable(updatedList));
+    _persistState();
   }
 
   /// Incrémente la quantité d'un produit d'une unité.
@@ -125,11 +145,13 @@ class CartNotifier extends StateNotifier<CartState> {
     final updatedList =
         state.items.where((item) => item.product.id != productId).toList();
     state = state.copyWith(items: List.unmodifiable(updatedList));
+    _persistState();
   }
 
   /// Vide l'intégralité du panier d'achat.
   void clearCart() {
     state = const CartState();
+    _localCartRepo.clearCart();
   }
 }
 
@@ -153,3 +175,4 @@ final cartTotalPriceProvider = Provider<double>((ref) {
 final cartTotalCountProvider = Provider<int>((ref) {
   return ref.watch(cartProvider).totalItemsCount;
 });
+

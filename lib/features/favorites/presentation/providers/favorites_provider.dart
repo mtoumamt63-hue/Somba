@@ -1,63 +1,40 @@
-import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/storage/hive_keys.dart';
+import '../../../../core/storage/local_storage_service.dart';
 import '../../../products/domain/product.dart';
 import '../../../products/presentation/providers/products_provider.dart';
 
 // =============================================================================
-// PERSISTANCE LOCALE : GESTIONNAIRE DE STOCKAGE
+// NOTIFIER : GESTION DES FAVORIS AVEC PERSISTANCE HIVE
 // =============================================================================
 
-/// Clé SharedPreferences pour la sauvegarde des favoris.
-const String _kFavoritesStorageKey = 'somba_user_favorites_ids';
-
-/// Provider pour initialiser ou accéder à l'instance SharedPreferences de manière asynchrone / sûre.
-final sharedPrefsInstanceProvider =
-    FutureProvider<SharedPreferences>((ref) async {
-  return SharedPreferences.getInstance();
-});
-
-// =============================================================================
-// NOTIFIER : GESTION DES FAVORIS AVEC PERSISTANCE
-// =============================================================================
-
-/// Notifier gérant la liste des IDs des produits marqués en favoris.
+/// Notifier gérant la liste des IDs des produits marqués en favoris via Hive.
 class FavoritesNotifier extends StateNotifier<Set<String>> {
-  final SharedPreferences? _prefs;
-
-  FavoritesNotifier([this._prefs]) : super(const {}) {
+  FavoritesNotifier() : super(const {}) {
     _loadFavoritesFromStorage();
   }
 
-  /// Charge les favoris sauvegardés au démarrage.
+  /// Charge les favoris sauvegardés au démarrage depuis Hive.
   void _loadFavoritesFromStorage() {
-    if (_prefs != null) {
-      final savedIds = _prefs.getStringList(_kFavoritesStorageKey);
-      if (savedIds != null && savedIds.isNotEmpty) {
-        state = Set<String>.unmodifiable(savedIds);
-        return;
+    try {
+      final box = LocalStorageService.favoritesBox;
+      final dynamic raw = box.get(HiveKeys.keyFavoritesIds);
+      if (raw != null && raw is List) {
+        state = Set<String>.unmodifiable(raw.cast<String>());
       }
-    } else {
-      // Chargement asynchrone si SharedPreferences n'a pas été injecté au constructeur
-      SharedPreferences.getInstance().then((prefs) {
-        final savedIds = prefs.getStringList(_kFavoritesStorageKey);
-        if (savedIds != null && savedIds.isNotEmpty) {
-          state = Set<String>.unmodifiable(savedIds);
-        }
-      }).catchError((_) {
-        // Mode dégradé si SharedPreferences échoue
-      });
+    } catch (e) {
+      debugPrint('⚠️ Erreur lors du chargement des favoris Hive : $e');
     }
   }
 
-  /// Sauvegarde l'état actuel des favoris dans le stockage local persistant.
+  /// Sauvegarde l'état actuel des favoris dans Hive.
   Future<void> _persistFavorites(Set<String> favorites) async {
     try {
-      final prefs = _prefs ?? await SharedPreferences.getInstance();
-      await prefs.setStringList(_kFavoritesStorageKey, favorites.toList());
+      final box = LocalStorageService.favoritesBox;
+      await box.put(HiveKeys.keyFavoritesIds, favorites.toList());
     } catch (e) {
-      debugPrint('Erreur lors de la sauvegarde des favoris : $e');
+      debugPrint('⚠️ Erreur lors de la sauvegarde des favoris Hive : $e');
     }
   }
 
