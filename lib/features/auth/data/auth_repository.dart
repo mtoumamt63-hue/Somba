@@ -1,19 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in/google_sign_in.dart' as gsi;
 
 /// Repository centralisant toutes les opérations d'authentification Firebase.
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
   // Sur Web, Google Sign-In passe par signInWithPopup (Firebase) — pas besoin de l'instance GoogleSignIn.
   // Sur mobile, on utilise le flux natif GoogleSignIn.
-  final GoogleSignIn? _googleSignIn;
+  final gsi.GoogleSignIn? _googleSignIn;
+  bool _isGoogleSignInInitialized = false;
 
-  AuthRepository({
-    FirebaseAuth? firebaseAuth,
-    GoogleSignIn? googleSignIn,
-  })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = kIsWeb ? null : (googleSignIn ?? GoogleSignIn.instance);
+  AuthRepository({FirebaseAuth? firebaseAuth, gsi.GoogleSignIn? googleSignIn})
+    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+      _googleSignIn = kIsWeb
+          ? null
+          : (googleSignIn ?? gsi.GoogleSignIn.instance);
 
   /// Flux réactif des changements d'état d'authentification.
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
@@ -91,10 +92,18 @@ class AuthRepository {
         return await _firebaseAuth.signInWithPopup(googleProvider);
       } else {
         // ── Chemin Mobile / Desktop ─────────────────────────────────────────
-        final GoogleSignInAccount googleUser =
-            await _googleSignIn!.authenticate();
+        if (!_isGoogleSignInInitialized) {
+          await _googleSignIn!.initialize(
+            serverClientId:
+                '455331920012-o74hac98k7d4ojdj6ebdcn825jqi5knq.apps.googleusercontent.com',
+          );
+          _isGoogleSignInInitialized = true;
+        }
 
-        final GoogleSignInAuthentication googleAuth =
+        final gsi.GoogleSignInAccount googleUser = (await _googleSignIn!
+            .authenticate());
+
+        final gsi.GoogleSignInAuthentication googleAuth =
             googleUser.authentication;
 
         final credential = GoogleAuthProvider.credential(
@@ -124,10 +133,7 @@ class AuthRepository {
         await _firebaseAuth.signOut();
       } else {
         // Sur mobile, déconnexion simultanée de Firebase et de Google.
-        await Future.wait([
-          _firebaseAuth.signOut(),
-          _googleSignIn!.signOut(),
-        ]);
+        await Future.wait([_firebaseAuth.signOut(), _googleSignIn!.signOut()]);
       }
     } catch (e) {
       debugPrint('Erreur lors de la déconnexion : $e');
@@ -158,26 +164,35 @@ class AuthRepository {
       case 'wrong-password':
         return const AuthException('Mot de passe incorrect.');
       case 'email-already-in-use':
-        return const AuthException('Cet email est déjà utilisé par un autre compte.');
+        return const AuthException(
+          'Cet email est déjà utilisé par un autre compte.',
+        );
       case 'weak-password':
         return const AuthException(
-            'Le mot de passe est trop faible. Utilisez au moins 6 caractères.');
+          'Le mot de passe est trop faible. Utilisez au moins 6 caractères.',
+        );
       case 'invalid-email':
         return const AuthException('Adresse email invalide.');
       case 'user-disabled':
         return const AuthException('Ce compte a été désactivé.');
       case 'too-many-requests':
         return const AuthException(
-            'Trop de tentatives. Veuillez réessayer plus tard.');
+          'Trop de tentatives. Veuillez réessayer plus tard.',
+        );
       case 'operation-not-allowed':
-        return const AuthException('Cette méthode de connexion n\'est pas activée.');
+        return const AuthException(
+          'Cette méthode de connexion n\'est pas activée.',
+        );
       case 'invalid-credential':
         return const AuthException('Email ou mot de passe incorrect.');
       case 'network-request-failed':
         return const AuthException(
-            'Erreur réseau. Vérifiez votre connexion internet.');
+          'Erreur réseau. Vérifiez votre connexion internet.',
+        );
       default:
-        return AuthException('Erreur d\'authentification : ${e.message ?? e.code}');
+        return AuthException(
+          'Erreur d\'authentification : ${e.message ?? e.code}',
+        );
     }
   }
 }

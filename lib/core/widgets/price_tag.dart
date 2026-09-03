@@ -67,43 +67,50 @@ class PriceTag extends StatelessWidget {
 
     final hasDiscount = originalPrice != null && originalPrice! > price;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        // Prix principal
-        Text(
-          '$formattedPrice $currencySymbol',
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: fontWeight,
-            color: effectiveColor,
-            letterSpacing: -0.5,
-            height: 1.0,
-          ),
-        ),
+    final semanticsText = hasDiscount
+        ? 'Prix: $formattedPrice $currencySymbol, réduit depuis ${originalPrice!.toStringAsFixed(0)} $currencySymbol'
+        : 'Prix: $formattedPrice $currencySymbol';
 
-        // Prix barré en cas de réduction
-        if (hasDiscount) ...[
-          const SizedBox(width: 8),
+    return Semantics(
+      label: semanticsText,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          // Prix principal
           Text(
-            '${showDecimals ? originalPrice!.toStringAsFixed(0).replaceAll('.', ',') : originalPrice!.toInt()} $currencySymbol',
+            '$formattedPrice $currencySymbol',
             style: TextStyle(
-              fontSize: fontSize * 0.72,
-              fontWeight: FontWeight.w500,
-              color: isDark
-                  ? AppColors.textMutedDark
-                  : AppColors.textMutedLight,
-              decoration: TextDecoration.lineThrough,
-              decorationColor: isDark
-                  ? AppColors.textMutedDark
-                  : AppColors.textMutedLight,
-              letterSpacing: -0.2,
+              fontSize: fontSize,
+              fontWeight: fontWeight,
+              color: effectiveColor,
+              letterSpacing: -0.5,
+              height: 1.0,
             ),
           ),
+
+          // Prix barré en cas de réduction
+          if (hasDiscount) ...[
+            const SizedBox(width: 8),
+            Text(
+              '${showDecimals ? originalPrice!.toStringAsFixed(0).replaceAll('.', ',') : originalPrice!.toInt()} $currencySymbol',
+              style: TextStyle(
+                fontSize: fontSize * 0.72,
+                fontWeight: FontWeight.w500,
+                color: isDark
+                    ? AppColors.textMutedDark
+                    : AppColors.textMutedLight,
+                decoration: TextDecoration.lineThrough,
+                decorationColor: isDark
+                    ? AppColors.textMutedDark
+                    : AppColors.textMutedLight,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

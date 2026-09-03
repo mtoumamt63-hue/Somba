@@ -54,11 +54,15 @@ class _AnimatedAddToCartButtonState extends State<AnimatedAddToCartButton> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedScale(
-      scale: _scale,
-      duration: const Duration(milliseconds: 140),
-      curve: Curves.easeOutCubic,
-      child: widget.isIconOnly ? _buildIconButton() : _buildFullButton(),
+    return Semantics(
+      button: true,
+      label: _isSuccess ? 'Article ajouté au panier' : widget.text,
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOutCubic,
+        child: widget.isIconOnly ? _buildIconButton() : _buildFullButton(),
+      ),
     );
   }
 

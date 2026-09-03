@@ -6,6 +6,7 @@ import 'core/storage/local_storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/widgets/auth_gate.dart';
 import 'firebase_options.dart';
+import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +42,10 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: const AuthGate(),
     );
   }
 }
+

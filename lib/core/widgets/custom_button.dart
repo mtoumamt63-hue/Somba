@@ -31,39 +31,44 @@ class CustomButton extends StatelessWidget {
     final effectiveBgColor = backgroundColor ?? AppColors.primary;
     final effectiveTextColor = textColor ?? Colors.white;
 
-    if (isOutlined) {
-      return SizedBox(
-        height: height,
-        width: double.infinity,
-        child: OutlinedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: OutlinedButton.styleFrom(
-            side: BorderSide(color: effectiveBgColor, width: 1.5),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(borderRadius),
+    final child = isOutlined
+        ? SizedBox(
+            height: height,
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: isLoading ? null : onPressed,
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: effectiveBgColor, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                ),
+              ),
+              child: _buildContent(effectiveBgColor),
             ),
-          ),
-          child: _buildContent(effectiveBgColor),
-        ),
-      );
-    }
+          )
+        : SizedBox(
+            height: height,
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: isLoading ? null : onPressed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: effectiveBgColor,
+                foregroundColor: effectiveTextColor,
+                disabledBackgroundColor: effectiveBgColor.withValues(alpha: 0.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                ),
+                elevation: 0,
+              ),
+              child: _buildContent(effectiveTextColor),
+            ),
+          );
 
-    return SizedBox(
-      height: height,
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: effectiveBgColor,
-          foregroundColor: effectiveTextColor,
-          disabledBackgroundColor: effectiveBgColor.withValues(alpha: 0.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
-          ),
-          elevation: 0,
-        ),
-        child: _buildContent(effectiveTextColor),
-      ),
+    return Semantics(
+      button: true,
+      enabled: !isLoading && onPressed != null,
+      label: isLoading ? '$text, chargement en cours' : text,
+      child: child,
     );
   }
 

@@ -32,13 +32,18 @@ class AuthTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      validator: validator,
-      onFieldSubmitted: onFieldSubmitted,
+    return Semantics(
+      textField: true,
+      label: label,
+      hint: hint,
+      obscured: obscureText,
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        textInputAction: textInputAction,
+        validator: validator,
+        onFieldSubmitted: onFieldSubmitted,
       style: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w500,
@@ -107,6 +112,7 @@ class AuthTextField extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
